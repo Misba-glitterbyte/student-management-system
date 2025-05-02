@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeSlide {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .fade-slide { animation: fadeSlide 0.8s ease forwards; }
+    .sidebar-btn {
+      background: linear-gradient(to right, #7f7fd5, #86a8e7, #91eae4);
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      color: white;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .sidebar-btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+    }
+    .input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      transition: border-color 0.3s;
+    }
+    .input:focus { border-color: #6366f1; }
+  </style>
+</head>
+
+<body class="flex min-h-screen bg-gradient-to-br from-blue-50 to-purple-100">
+
+<!-- Sidebar -->
+<aside class="w-64 bg-white shadow-lg p-6 space-y-6 flex flex-col">
+  <h1 class="text-3xl font-bold text-purple-700 text-center mb-10">🎓 SMS</h1>
+  <button onclick="showSection('addStudent')" class="sidebar-btn">➕ Add Student</button>
+  <button onclick="showSection('listStudents')" class="sidebar-btn">📋 List Students</button>
+  <button onclick="showSection('viewStudents')" class="sidebar-btn">👀 View Students</button>
+  <button onclick="showSection('viewResults')" class="sidebar-btn">🧾 View Results</button>
+  <button onclick="showSection('attendanceSection')" class="sidebar-btn">🗓️ Attendance</button>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 p-10 space-y-8">
+
+  <!-- Add Student -->
+  <section id="addStudent" class="hidden fade-slide">
+    <h2 class="text-3xl font-bold text-blue-600 mb-6" id="formTitle">➕ Add Student</h2>
+    <form id="studentForm" class="space-y-4 max-w-lg">
+      <input type="hidden" id="editIndex">
+      <input type="text" id="name" placeholder="Name" required class="input">
+      <input type="text" id="department" placeholder="Department" required class="input">
+      <input type="text" id="usn" placeholder="USN Number" required class="input">
+      <input type="email" id="email" placeholder="Email" required class="input">
+      <input type="number" id="mobile" placeholder="Mobile Number" required class="input">
+      <input type="text" id="gender" placeholder="Gender" required class="input">
+      <input type="text" id="address" placeholder="Address" required class="input">
+
+      <!-- Profile Picture Upload -->
+      <div>
+        <label for="profilePicture" class="block text-sm font-medium text-gray-700">Profile Picture</label>
+        <input type="file" id="profilePicture" class="input" accept="image/*">
+      </div>
+
+      <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-700 transition" id="submitButton">Add Student</button>
+    </form>
+  </section>
+
+  <!-- List Students -->
+  <section id="listStudents" class="hidden fade-slide">
+    <h2 class="text-3xl font-bold text-green-600 mb-6">📋 Total Students</h2>
+    <div id="studentCount" class="text-6xl font-bold text-green-700">0</div>
+  </section>
+
+  <!-- View Students -->
+  <section id="viewStudents" class="hidden fade-slide">
+    <h2 class="text-3xl font-bold text-orange-600 mb-6">👀 Students List</h2>
+
+    <div class="mb-4">
+      <input type="text" id="searchStudent" placeholder="Search by USN, Name, Department..." class="input" oninput="filterStudents()">
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-orange-100">
+          <tr>
+            <th class="py-3 px-5 text-left border-b">USN</th>
+            <th class="py-3 px-5 text-left border-b">Name</th>
+            <th class="py-3 px-5 text-left border-b">Department</th>
+            <th class="py-3 px-5 text-left border-b">Email</th>
+            <th class="py-3 px-5 text-left border-b">Mobile</th>
+            <th class="py-3 px-5 text-left border-b">Gender</th>
+            <th class="py-3 px-5 text-left border-b">Address</th>
+            <th class="py-3 px-5 text-left border-b">Profile Picture</th>
+            <th class="py-3 px-5 text-left border-b">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTable" class="text-gray-700">
+          <!-- Dynamic Rows -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- View Results -->
+  <section id="viewResults" class="hidden fade-slide">
+    <h2 class="text-3xl font-bold text-red-600 mb-6">🧾 Student Results</h2>
+    <form id="resultForm" class="space-y-4 max-w-lg mb-6">
+      <input type="text" id="resultUSN" placeholder="Student USN" required class="input">
+      <input type="text" id="subject" placeholder="Subject" required class="input">
+      <input type="number" id="marks" placeholder="Marks" required class="input">
+      <button type="submit" class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-700 transition">Add Result</button>
+    </form>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-red-100">
+          <tr>
+            <th class="py-3 px-5 text-left border-b">USN</th>
+            <th class="py-3 px-5 text-left border-b">Subject</th>
+            <th class="py-3 px-5 text-left border-b">Marks</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTable" class="text-gray-700">
+          <!-- Dynamic Rows -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Attendance Section -->
+  <section id="attendanceSection" class="hidden fade-slide">
+    <h2 class="text-3xl font-bold text-purple-600 mb-6">🗓️ Mark Attendance</h2>
+    <div id="attendanceCounts" class="text-xl font-semibold mb-4 text-gray-700">
+      Present: <span id="presentCount">0</span> | Absent: <span id="absentCount">0</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-purple-100">
+          <tr>
+            <th class="py-3 px-5 text-left border-b">USN</th>
+            <th class="py-3 px-5 text-left border-b">Name</th>
+            <th class="py-3 px-5 text-left border-b">Department</th>
+            <th class="py-3 px-5 text-left border-b">Attendance</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTable" class="text-gray-700">
+          <!-- Dynamic Attendance Rows -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  let students = JSON.parse(localStorage.getItem('students')) || [];
+  let results = JSON.parse(localStorage.getItem('results')) || [];
+  let attendance = JSON.parse(localStorage.getItem('attendance')) || {};
+
+  function showSection(sectionId) {
+    document.querySelectorAll('main > section').forEach(section => section.classList.add('hidden'));
+    document.getElementById(sectionId).classList.remove('hidden');
+
+    if (sectionId === 'listStudents') {
+      document.getElementById('studentCount').textContent = students.length;
+    }
+    if (sectionId === 'viewStudents') {
+      document.getElementById('searchStudent').value = '';
+      filterStudents();
+    }
+    if (sectionId === 'viewResults') {
+      const table = document.getElementById('resultsTable');
+      table.innerHTML = '';
+      results.forEach(result => {
+        table.innerHTML += `
+          <tr>
+            <td class="py-2 px-4 border-b">${result.usn}</td>
+            <td class="py-2 px-4 border-b">${result.subject}</td>
+            <td class="py-2 px-4 border-b">${result.marks}</td>
+          </tr>
+        `;
+      });
+    }
+    if (sectionId === 'attendanceSection') {
+      loadAttendance();
+    }
+  }
+
+  function filterStudents() {
+    const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
+    const table = document.getElementById('studentsTable');
+    table.innerHTML = '';
+    students.filter(student =>
+      student.name.toLowerCase().includes(searchTerm) ||
+      student.usn.toLowerCase().includes(searchTerm) ||
+      student.department.toLowerCase().includes(searchTerm)
+    ).forEach((student, index) => {
+      const profileImage = student.profilePicture ? `<img src="${student.profilePicture}" alt="${student.name}'s profile" class="w-12 h-12 rounded-full">` : 'No Image';
+      table.innerHTML += `
+        <tr class="hover:bg-gray-100">
+          <td class="py-2 px-4 border-b">${student.usn}</td>
+          <td class="py-2 px-4 border-b">${student.name}</td>
+          <td class="py-2 px-4 border-b">${student.department}</td>
+          <td class="py-2 px-4 border-b">${student.email}</td>
+          <td class="py-2 px-4 border-b">${student.mobile}</td>
+          <td class="py-2 px-4 border-b">${student.gender}</td>
+          <td class="py-2 px-4 border-b">${student.address}</td>
+          <td class="py-2 px-4 border-b">${profileImage}</td>
+          <td class="py-2 px-4 border-b flex justify-center items-center space-x-4">
+            <button onclick="editStudent(${index})" class="text-yellow-500 hover:text-yellow-700 px-4 py-2 border rounded-lg">Edit</button>
+            <button onclick="deleteStudent(${index})" class="text-red-500 hover:text-red-700 px-4 py-2 border rounded-lg">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  function editStudent(index) {
+    const student = students[index];
+    document.getElementById('name').value = student.name;
+    document.getElementById('department').value = student.department;
+    document.getElementById('usn').value = student.usn;
+    document.getElementById('email').value = student.email;
+    document.getElementById('mobile').value = student.mobile;
+    document.getElementById('gender').value = student.gender;
+    document.getElementById('address').value = student.address;
+    document.getElementById('editIndex').value = index;
+    document.getElementById('formTitle').textContent = '✏️ Edit Student';
+    document.getElementById('submitButton').textContent = 'Save Changes';
+    showSection('addStudent');
+  }
+
+  function deleteStudent(index) {
+    students.splice(index, 1);
+    localStorage.setItem('students', JSON.stringify(students));
+    showSection('viewStudents');
+  }
+
+  document.getElementById('studentForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const department = document.getElementById('department').value;
+    const usn = document.getElementById('usn').value;
+    const email = document.getElementById('email').value;
+    const mobile = document.getElementById('mobile').value;
+    const gender = document.getElementById('gender').value;
+    const address = document.getElementById('address').value;
+    const profilePicture = document.getElementById('profilePicture').files[0];
+
+    if (profilePicture) {
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        const newStudent = {
+          name,
+          department,
+          usn,
+          email,
+          mobile,
+          gender,
+          address,
+          profilePicture: reader.result
+        };
+
+        const editIndex = document.getElementById('editIndex').value;
+        if (editIndex) {
+          students[editIndex] = newStudent;
+        } else {
+          students.push(newStudent);
+        }
+
+        localStorage.setItem('students', JSON.stringify(students));
+        showSection('viewStudents');
+      };
+      reader.readAsDataURL(profilePicture);
+    } else {
+      alert('Please upload a profile picture!');
+    }
+  });
+
+  function loadAttendance() {
+    const table = document.getElementById('attendanceTable');
+    table.innerHTML = '';
+    let presentCount = 0;
+    let absentCount = 0;
+
+    students.forEach(student => {
+      const isPresent = attendance[student.usn] === 'present';
+      if (isPresent) presentCount++;
+      else absentCount++;
+
+      table.innerHTML += `
+        <tr>
+          <td class="py-2 px-4 border-b">${student.usn}</td>
+          <td class="py-2 px-4 border-b">${student.name}</td>
+          <td class="py-2 px-4 border-b">${student.department}</td>
+          <td class="py-2 px-4 border-b">
+            <button onclick="markAttendance('${student.usn}', 'present')" class="bg-green-500 text-white px-4 py-2 rounded">Present</button>
+            <button onclick="markAttendance('${student.usn}', 'absent')" class="bg-red-500 text-white px-4 py-2 rounded ml-2">Absent</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('presentCount').textContent = presentCount;
+    document.getElementById('absentCount').textContent = absentCount;
+  }
+
+  function markAttendance(usn, status) {
+    attendance[usn] = status;
+    localStorage.setItem('attendance', JSON.stringify(attendance));
+    loadAttendance();
+  }
+
+  showSection('listStudents');
+</script>
+
+</body>
+</html>
